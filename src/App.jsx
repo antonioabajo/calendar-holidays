@@ -14,8 +14,8 @@ import {
   deleteDoc
 } from 'firebase/firestore';
 
-// --- ICONOS SVG INTEGRADOS ---
-const Icon = ({ d, size = 24, className = "" }) => (
+// --- ICONOS SVG INTEGRADOS (Minimalistas y consistentes) ---
+const Icon = ({ d, size = 20, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d={d} />
   </svg>
@@ -42,21 +42,21 @@ const SettingsIcon = (p) => <Icon {...p} d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 
 const UserPlusIcon = (p) => <Icon {...p} d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M19 8v6 M22 11h-6" />;
 const XIcon = (p) => <Icon {...p} d="M18 6 6 18 M6 6l12 12" />;
 
-// --- CONFIGURACIÓN BASE (Solo como fallback si la base de datos está vacía) ---
+// --- CONFIGURACIÓN BASE ---
 const FALLBACK_USERS = [
-  { id: 'carlos', name: 'Carlos', totalDays: 24, region: 'Asturias', color: 'bg-blue-600', colorLight: 'bg-blue-100', text: 'text-blue-700' },
+  { id: 'carlos', name: 'Carlos', totalDays: 24, region: 'Asturias', color: 'bg-indigo-600', colorLight: 'bg-indigo-100', text: 'text-indigo-700' },
   { id: 'antonio', name: 'Antonio', totalDays: 24, region: 'Madrid', color: 'bg-emerald-600', colorLight: 'bg-emerald-100', text: 'text-emerald-700' },
-  { id: 'ricardo', name: 'Ricardo', totalDays: 24, region: 'Granada', color: 'bg-purple-600', colorLight: 'bg-purple-100', text: 'text-purple-700' }
+  { id: 'ricardo', name: 'Ricardo', totalDays: 24, region: 'Granada', color: 'bg-violet-600', colorLight: 'bg-violet-100', text: 'text-violet-700' }
 ];
 
 const TEAM_COLORS = [
-  { bg: 'bg-blue-600', light: 'bg-blue-100', text: 'text-blue-700' },
-  { bg: 'bg-emerald-600', light: 'bg-emerald-100', text: 'text-emerald-700' },
-  { bg: 'bg-purple-600', light: 'bg-purple-100', text: 'text-purple-700' },
-  { bg: 'bg-amber-600', light: 'bg-amber-100', text: 'text-amber-700' },
-  { bg: 'bg-rose-600', light: 'bg-rose-100', text: 'text-rose-700' },
-  { bg: 'bg-cyan-600', light: 'bg-cyan-100', text: 'text-cyan-700' },
   { bg: 'bg-indigo-600', light: 'bg-indigo-100', text: 'text-indigo-700' },
+  { bg: 'bg-emerald-600', light: 'bg-emerald-100', text: 'text-emerald-700' },
+  { bg: 'bg-violet-600', light: 'bg-violet-100', text: 'text-violet-700' },
+  { bg: 'bg-amber-500', light: 'bg-amber-100', text: 'text-amber-700' },
+  { bg: 'bg-rose-500', light: 'bg-rose-100', text: 'text-rose-700' },
+  { bg: 'bg-cyan-600', light: 'bg-cyan-100', text: 'text-cyan-700' },
+  { bg: 'bg-blue-600', light: 'bg-blue-100', text: 'text-blue-700' },
 ];
 
 const HOLIDAYS_2026 = {
@@ -80,7 +80,12 @@ const HOLIDAYS_2026 = {
   ]
 };
 
-// --- COMPONENTES ---
+// --- COMPONENTES UI ---
+// Función helper para extraer iniciales de un nombre
+const getInitials = (name) => {
+  return name.slice(0, 2).toUpperCase();
+};
+
 const CustomDatePicker = ({ label, value, onChange, userId, users }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [viewDate, setViewDate] = useState(new Date(2026, 2, 1)); 
@@ -108,15 +113,15 @@ const CustomDatePicker = ({ label, value, onChange, userId, users }) => {
       const isWeekend = [0, 6].includes(new Date(year, month, d).getDay());
       const isSelected = value === dateStr;
 
-      let style = "hover:bg-blue-50 text-gray-700";
-      if (isSelected) style = "bg-blue-600 text-white font-bold shadow-sm";
-      else if (isNat) style = "bg-red-100 text-red-700 font-semibold border border-red-200";
-      else if (isReg) style = "bg-orange-100 text-orange-700 font-semibold border border-orange-200";
-      else if (isWeekend) style = "bg-gray-50 text-gray-400";
+      let style = "hover:bg-slate-100 text-slate-700";
+      if (isSelected) style = "bg-slate-900 text-white font-bold shadow-sm";
+      else if (isNat) style = "bg-rose-50 text-rose-600 font-semibold border border-rose-100";
+      else if (isReg) style = "bg-amber-50 text-amber-700 font-semibold border border-amber-100";
+      else if (isWeekend) style = "bg-slate-50 text-slate-400";
 
       days.push(
         <button key={d} type="button" onClick={() => { onChange(dateStr); setIsOpen(false); }}
-          className={`h-8 w-full rounded-md flex items-center justify-center text-[10px] transition-all ${style}`}
+          className={`h-8 w-full rounded-md flex items-center justify-center text-xs transition-all ${style}`}
           title={isNat?.name || isReg?.name || ""}>
           {d}
         </button>
@@ -127,9 +132,9 @@ const CustomDatePicker = ({ label, value, onChange, userId, users }) => {
 
   return (
     <div className="relative">
-      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">{label}</label>
-      <div onClick={() => setIsOpen(!isOpen)} className="w-full border border-slate-200 rounded-xl p-3 bg-white cursor-pointer flex justify-between items-center hover:border-blue-500 transition-colors shadow-sm">
-        <span className={value ? "text-slate-900 text-sm font-medium" : "text-slate-300 text-sm"}>
+      <label className="block text-xs font-semibold text-slate-500 mb-1.5">{label}</label>
+      <div onClick={() => setIsOpen(!isOpen)} className="w-full border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 cursor-pointer flex justify-between items-center hover:bg-slate-50 hover:border-slate-300 transition-colors focus-within:ring-2 focus-within:ring-slate-200">
+        <span className={value ? "text-slate-900 text-sm font-medium" : "text-slate-400 text-sm"}>
           {value ? new Date(value).toLocaleDateString('es-ES') : "Seleccionar fecha"}
         </span>
         <CalendarIcon size={16} className="text-slate-400" />
@@ -137,14 +142,14 @@ const CustomDatePicker = ({ label, value, onChange, userId, users }) => {
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
-          <div className="absolute z-50 mt-2 bg-white border border-slate-200 shadow-2xl rounded-2xl p-4 w-64 left-0 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center mb-3">
-              <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-1.5 hover:bg-slate-100 rounded-full transition-colors"><LeftIcon size={16}/></button>
-              <span className="font-bold text-xs text-slate-700">{monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}</span>
-              <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-1.5 hover:bg-slate-100 rounded-full transition-colors"><RightIcon size={16}/></button>
+          <div className="absolute z-50 mt-2 bg-white border border-slate-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-2xl p-4 w-72 left-0 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-4">
+              <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-1.5 hover:bg-slate-100 rounded-full transition-colors text-slate-500"><LeftIcon size={16}/></button>
+              <span className="font-semibold text-sm text-slate-800">{monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}</span>
+              <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-1.5 hover:bg-slate-100 rounded-full transition-colors text-slate-500"><RightIcon size={16}/></button>
             </div>
-            <div className="grid grid-cols-7 gap-1 text-[9px] font-black text-slate-300 text-center mb-1 uppercase">
-              {['L','M','X','J','V','S','D'].map(day => <div key={day}>{day}</div>)}
+            <div className="grid grid-cols-7 gap-1 text-[10px] font-semibold text-slate-400 text-center mb-2 uppercase tracking-wider">
+              {['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(day => <div key={day}>{day}</div>)}
             </div>
             <div className="grid grid-cols-7 gap-1">{renderDays()}</div>
           </div>
@@ -156,7 +161,6 @@ const CustomDatePicker = ({ label, value, onChange, userId, users }) => {
 
 // --- APP PRINCIPAL ---
 export default function App() {
-  // --- ESTADOS DE ACCESO ---
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('vacas_auth_pro') === 'true');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -164,11 +168,9 @@ export default function App() {
   const [isReady, setIsReady] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
   
-  // --- ESTADO DEL EQUIPO Y VACACIONES ---
   const [users, setUsers] = useState([]);
   const [vacations, setVacations] = useState([]);
   
-  // --- ESTADOS DE MODAL (NUEVO) ---
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [newMemName, setNewMemName] = useState('');
   const [newMemDays, setNewMemDays] = useState(24);
@@ -186,24 +188,20 @@ export default function App() {
   
   const STABLE_APP_ID = 'vacaciones-equipo-2026'; 
 
-  // Ajuste de selección por defecto si no hay nadie seleccionado
   useEffect(() => {
     if (users.length > 0 && !users.find(u => u.id === newUser)) {
       setNewUser(users[0].id);
     }
   }, [users, newUser]);
 
-  // Si se borra el usuario filtrado, volvemos a mostrar todos
   useEffect(() => {
     if (calUserFilter !== 'all' && !users.find(u => u.id === calUserFilter)) {
       setCalUserFilter('all');
     }
   }, [users, calUserFilter]);
 
-  // EFECTO DE INICIALIZACIÓN Y CARGA
   useEffect(() => {
     const initProject = () => {
-      // Inyectar Tailwind CDN
       if (!document.getElementById('tailwind-cdn')) {
         const script = document.createElement('script');
         script.id = 'tailwind-cdn';
@@ -232,7 +230,7 @@ export default function App() {
         measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
       };
     } catch (e) {
-      // Entorno no soporta import.meta
+      // Ignorar
     }
 
     const firebaseConfig = {
@@ -247,7 +245,6 @@ export default function App() {
 
     try {
       if (!firebaseConfig.apiKey) {
-        console.warn("Activando modo local.");
         setCloudActive(false);
         setSessionUser({ uid: 'local-admin' });
         
@@ -275,23 +272,19 @@ export default function App() {
     }
   }, []);
 
-  // Sincronización Firestore
   useEffect(() => {
     if (!sessionUser || !cloudActive || !db) return;
     
-    // Escuchar vacaciones
     const pathVacs = collection(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'vacaciones');
     const unsubscribeVacs = onSnapshot(pathVacs, (snapshot) => {
       setVacations(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     }, (e) => console.error(e));
 
-    // Escuchar Equipo
     const pathTeam = collection(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'team');
     const unsubscribeTeam = onSnapshot(pathTeam, (snapshot) => {
       if (!snapshot.empty) {
         setUsers(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       } else {
-        // Inicializamos con el equipo por defecto si la BD de equipo está vacía
         FALLBACK_USERS.forEach(u => {
           setDoc(doc(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'team', u.id), u);
         });
@@ -301,7 +294,6 @@ export default function App() {
     return () => { unsubscribeVacs(); unsubscribeTeam(); };
   }, [sessionUser, cloudActive, db]);
 
-  // Sincronización Local (Fallback)
   useEffect(() => {
     if (!cloudActive) {
       localStorage.setItem('vacas_v_final_data_pro', JSON.stringify(vacations));
@@ -330,11 +322,11 @@ export default function App() {
 
   const handleAdd = async (e) => {
     e.preventDefault();
-    if (!newStart || !newEnd) return setMsg({ text: 'Elige fechas', type: 'error' });
+    if (!newStart || !newEnd) return setMsg({ text: 'Por favor, selecciona las fechas.', type: 'error' });
     const days = calculateDays(newStart, newEnd, newUser);
-    if (days <= 0) return setMsg({ text: 'Rango no válido', type: 'error' });
+    if (days <= 0) return setMsg({ text: 'El rango no contiene días laborables válidos.', type: 'error' });
     const bal = userBalances.find(u => u.id === newUser);
-    if (bal.remaining < days) return setMsg({ text: 'Días insuficientes', type: 'error' });
+    if (bal.remaining < days) return setMsg({ text: 'Días insuficientes en el balance.', type: 'error' });
 
     const entry = { userId: newUser, userName: bal.name, startDate: newStart, endDate: newEnd, days, status: 'Aprobado' };
 
@@ -342,16 +334,16 @@ export default function App() {
       try {
         const docRef = doc(collection(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'vacaciones'));
         await setDoc(docRef, entry);
-        setMsg({ text: 'Guardado en tu Nube', type: 'success' });
+        setMsg({ text: 'Registro guardado exitosamente.', type: 'success' });
       } catch (err) {
-        setMsg({ text: 'Permiso denegado en tu BDD', type: 'error' });
+        setMsg({ text: 'Error de permisos en la base de datos.', type: 'error' });
       }
     } else {
       setVacations(prev => [...prev, { ...entry, id: Date.now().toString() }]);
-      setMsg({ text: 'Guardado Localmente', type: 'success' });
+      setMsg({ text: 'Guardado en modo local.', type: 'success' });
     }
     setNewStart(''); setNewEnd(''); setCalUserFilter(newUser);
-    setTimeout(() => setMsg({ text: '', type: '' }), 3000);
+    setTimeout(() => setMsg({ text: '', type: '' }), 4000);
   };
 
   const removeVaca = async (id) => {
@@ -359,7 +351,6 @@ export default function App() {
     else setVacations(prev => prev.filter(v => v.id !== id));
   };
 
-  // --- GESTIÓN DEL EQUIPO ---
   const handleAddMember = async (e) => {
     e.preventDefault();
     if (!newMemName) return;
@@ -389,7 +380,7 @@ export default function App() {
   };
 
   const handleRemoveMember = async (id) => {
-    if (users.length <= 1) return; // Obligamos a mantener al menos uno
+    if (users.length <= 1) return;
     if (cloudActive && db) {
       await deleteDoc(doc(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'team', id));
     } else {
@@ -404,7 +395,7 @@ export default function App() {
       localStorage.setItem('vacas_auth_pro', 'true');
       setLoginError('');
     } else {
-      setLoginError('Contraseña incorrecta');
+      setLoginError('Contraseña incorrecta. Inténtalo de nuevo.');
     }
   };
 
@@ -414,18 +405,23 @@ export default function App() {
     localStorage.removeItem('vacas_auth_pro');
   };
 
+  const handleUserCardClick = (userId) => {
+    setCalUserFilter(userId);
+    setViewMode('calendar');
+  };
+
   const renderCalendarView = () => {
     const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     return (
-      <div className="space-y-6 animate-in fade-in duration-700">
-        <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-3xl border border-slate-100 shadow-sm gap-4">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calendario de Equipo</span>
-          <select value={calUserFilter} onChange={(e) => setCalUserFilter(e.target.value)} className="text-sm bg-slate-50 border border-slate-200 rounded-2xl px-6 py-2 outline-none font-bold text-slate-700 cursor-pointer focus:ring-4 focus:ring-blue-50 transition-all">
-            <option value="all">Ver todo el equipo</option>
+      <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm gap-4">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Visor de Calendario</span>
+          <select value={calUserFilter} onChange={(e) => setCalUserFilter(e.target.value)} className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none font-medium text-slate-800 cursor-pointer focus:ring-2 focus:ring-slate-200 transition-all">
+            <option value="all">Todo el equipo</option>
             {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {months.map((mName, mIdx) => {
             const daysInMonth = new Date(2026, mIdx + 1, 0).getDate();
             const first = new Date(2026, mIdx, 1).getDay();
@@ -440,20 +436,20 @@ export default function App() {
               const activeVacs = vacations.filter(v => dStr >= v.startDate && dStr <= v.endDate);
               const userOnVaca = activeVacs.find(v => v.userId === calUserFilter);
 
-              let cellStyle = "text-slate-500";
-              if (isSun || isNat) cellStyle = "text-red-500 font-bold";
+              let cellStyle = "text-slate-600";
+              if (isSun || isNat) cellStyle = "text-rose-500 font-semibold bg-rose-50/50 rounded-md";
               let bg = "";
-              if (calUserFilter !== 'all' && userOnVaca) bg = users.find(u => u.id === calUserFilter)?.color || 'bg-slate-400';
-              else if (isToday) bg = "ring-2 ring-slate-800 ring-inset rounded-xl";
+              if (calUserFilter !== 'all' && userOnVaca) bg = `${users.find(u => u.id === calUserFilter)?.color} rounded-md shadow-sm`;
+              else if (isToday) bg = "ring-2 ring-slate-900 ring-inset rounded-md";
 
               grid.push(
-                <div key={d} className={`h-10 flex flex-col items-center justify-center relative rounded-xl transition-all ${bg} ${bg && calUserFilter !== 'all' ? 'text-white shadow-md' : ''}`}>
-                  <span className={`text-[11px] ${cellStyle} ${bg && calUserFilter !== 'all' ? 'text-white' : ''}`}>{d}</span>
+                <div key={d} className={`h-9 flex flex-col items-center justify-center relative transition-all ${bg} ${bg && calUserFilter !== 'all' ? 'text-white' : ''}`}>
+                  <span className={`text-xs ${cellStyle} ${bg && calUserFilter !== 'all' ? 'text-white' : ''}`}>{d}</span>
                   {calUserFilter === 'all' && activeVacs.length > 0 && (
-                    <div className="flex gap-0.5 absolute bottom-1.5">
+                    <div className="flex gap-0.5 absolute bottom-1">
                       {activeVacs.map(v => {
                         const uColor = users.find(u => u.id === v.userId)?.color || 'bg-slate-400';
-                        return <div key={`${v.id}-${v.userId}`} className={`w-1.5 h-1.5 rounded-full border border-white ${uColor}`} />
+                        return <div key={`${v.id}-${v.userId}`} className={`w-1.5 h-1.5 rounded-full ${uColor}`} />
                       })}
                     </div>
                   )}
@@ -461,11 +457,15 @@ export default function App() {
               );
             }
             return (
-              <div key={mName} className="bg-white border border-slate-100 rounded-[32px] shadow-sm overflow-hidden flex flex-col hover:shadow-2xl transition-all">
-                <div className="bg-slate-50 py-3 text-center text-[10px] font-black border-b border-slate-100 uppercase tracking-widest text-slate-400">{mName} 2026</div>
-                <div className="grid grid-cols-7 gap-1 p-4 flex-1">
-                  {['L','M','X','J','V','S','D'].map(h => <div key={h} className="text-[9px] text-slate-300 text-center font-black pb-2">{h}</div>)}
-                  {grid}
+              <div key={mName} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+                <div className="bg-slate-50 py-3 text-center text-xs font-semibold border-b border-slate-100 uppercase tracking-widest text-slate-500">{mName}</div>
+                <div className="p-4 flex-1">
+                  <div className="grid grid-cols-7 gap-1 text-[10px] font-semibold text-slate-400 text-center mb-2 uppercase">
+                    {['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(h => <div key={h}>{h}</div>)}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1">
+                    {grid}
+                  </div>
                 </div>
               </div>
             );
@@ -477,29 +477,37 @@ export default function App() {
 
   if (!isReady) return (
     <div className="fixed inset-0 bg-slate-50 flex flex-col items-center justify-center z-[9999]">
-      <LoaderIcon className="text-blue-600 mb-4" size={48} />
-      <p className="text-slate-400 font-bold text-xs uppercase tracking-widest animate-pulse">Iniciando Panel de Gestión...</p>
+      <LoaderIcon className="text-slate-900 mb-4" size={32} />
+      <p className="text-slate-500 font-medium text-sm tracking-wide animate-pulse">Cargando entorno...</p>
     </div>
   );
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans">
-        <div className="bg-white p-10 rounded-[40px] shadow-xl border border-slate-100 w-full max-w-md animate-in zoom-in-95 duration-500">
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4 font-sans">
+        <div className="bg-white p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 w-full max-w-sm animate-in zoom-in-95 duration-500">
           <div className="flex flex-col items-center text-center mb-8">
-            <div className="bg-blue-50 p-5 rounded-full mb-5">
-              <LockIcon className="text-blue-600" size={36} />
+            <div className="bg-slate-900 p-4 rounded-2xl mb-6 shadow-lg">
+              <LockIcon className="text-white" size={28} />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Acceso Restringido</h1>
-            <p className="text-sm text-slate-500 mt-2">Introduce la contraseña del equipo para continuar</p>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Portal del Equipo</h1>
+            <p className="text-sm text-slate-500 mt-2 leading-relaxed">Inicia sesión con la clave compartida para gestionar las vacaciones.</p>
           </div>
           
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña..." className="w-full border-2 border-slate-50 rounded-2xl p-4 text-center font-bold text-slate-800 outline-none focus:bg-white focus:ring-8 focus:ring-blue-50 focus:border-blue-500 transition-all shadow-sm" />
-              {loginError && <p className="text-red-500 text-xs font-bold text-center mt-3 animate-in slide-in-from-top-1">{loginError}</p>}
+              <input 
+                type="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                placeholder="Contraseña de acceso" 
+                className="w-full border border-slate-200 rounded-xl p-3.5 text-center text-sm font-medium text-slate-800 outline-none focus:bg-slate-50 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all placeholder:text-slate-400" 
+              />
+              {loginError && <p className="text-rose-500 text-xs font-medium text-center mt-3 animate-in slide-in-from-top-1">{loginError}</p>}
             </div>
-            <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-blue-600 hover:-translate-y-1 transition-all shadow-lg active:scale-95">Entrar al Panel</button>
+            <button type="submit" className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-slate-800 transition-all shadow-md active:scale-[0.98]">
+              Acceder al panel
+            </button>
           </form>
         </div>
       </div>
@@ -507,52 +515,62 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
+    <div className="min-h-screen bg-[#f8fafc] font-sans text-slate-900 selection:bg-slate-200">
       
       {/* MODAL DE EQUIPO */}
       {showTeamModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-3">
-                <UsersIcon className="text-blue-600" /> Gestión del Equipo
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
+              <h2 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-3">
+                <div className="p-2 bg-slate-100 rounded-lg"><UsersIcon size={18} className="text-slate-700" /></div>
+                Gestión de Miembros
               </h2>
-              <button onClick={() => setShowTeamModal(false)} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
-                <XIcon size={24} />
+              <button onClick={() => setShowTeamModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-700">
+                <XIcon size={20} />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1 space-y-8">
-              {/* Añadir Usuario */}
-              <form onSubmit={handleAddMember} className="space-y-4 bg-slate-50 p-6 rounded-[24px] border border-slate-100">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Añadir Nuevo Miembro</h3>
+            <div className="p-6 overflow-y-auto flex-1 space-y-8 bg-slate-50/50">
+              <form onSubmit={handleAddMember} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 className="text-sm font-semibold text-slate-800 mb-4">Añadir nuevo integrante</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <input required type="text" placeholder="Nombre..." value={newMemName} onChange={e => setNewMemName(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
-                  <input required type="number" min="1" placeholder="Total Días..." value={newMemDays} onChange={e => setNewMemDays(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
-                  <select value={newMemRegion} onChange={e => setNewMemRegion(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-50 transition-all cursor-pointer text-slate-700">
-                    {Object.keys(HOLIDAYS_2026).map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5">Nombre completo</label>
+                    <input required type="text" placeholder="Ej. Marta" value={newMemName} onChange={e => setNewMemName(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5">Días anuales</label>
+                    <input required type="number" min="1" value={newMemDays} onChange={e => setNewMemDays(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5">Región (Festivos)</label>
+                    <select value={newMemRegion} onChange={e => setNewMemRegion(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all bg-white">
+                      {Object.keys(HOLIDAYS_2026).map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
                 </div>
-                <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">
-                  <UserPlusIcon size={16} /> Incorporar al Equipo
+                <button type="submit" className="mt-5 w-full bg-slate-900 text-white py-2.5 rounded-lg font-medium text-sm hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-sm">
+                  <UserPlusIcon size={16} /> Confirmar alta
                 </button>
               </form>
 
-              {/* Lista de Equipo */}
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Miembros Actuales ({users.length})</h3>
-                <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-slate-800 mb-3">Directorio actual ({users.length})</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {users.map(u => (
-                    <div key={u.id} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-3 h-3 rounded-full ${u.color}`} />
+                    <div key={u.id} className="flex items-center justify-between bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${u.color} shadow-sm`}>
+                          {getInitials(u.name)}
+                        </div>
                         <div>
-                          <p className="font-bold text-slate-800 leading-none">{u.name}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 tracking-widest">{u.region} • {u.totalDays} DÍAS</p>
+                          <p className="font-medium text-sm text-slate-900 leading-tight">{u.name}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{u.region} · {u.totalDays} d.</p>
                         </div>
                       </div>
-                      <button onClick={() => handleRemoveMember(u.id)} className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors" title="Eliminar miembro">
-                        <TrashIcon size={18} />
+                      <button onClick={() => handleRemoveMember(u.id)} className="text-slate-400 hover:text-rose-600 p-1.5 rounded-md hover:bg-rose-50 transition-colors" title="Dar de baja">
+                        <TrashIcon size={16} />
                       </button>
                     </div>
                   ))}
@@ -563,105 +581,206 @@ export default function App() {
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto space-y-8">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-black text-slate-900 tracking-tighter flex items-center gap-4 uppercase">
-              <CalendarIcon className="text-blue-600" size={36} /> Panel Equipo
-            </h1>
-            <div className="flex items-center gap-3">
+      {/* NAVEGACIÓN SUPERIOR */}
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-slate-900 p-2 rounded-lg">
+              <CalendarIcon className="text-white" size={20} />
+            </div>
+            <h1 className="text-lg font-bold text-slate-900 tracking-tight hidden sm:block">Planificador</h1>
+            
+            <div className="hidden sm:flex items-center ml-4 pl-4 border-l border-slate-200">
               {cloudActive ? (
-                <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-100 uppercase tracking-widest shadow-sm"><CloudIcon size={14} /> Tu Nube Activa</span>
+                <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100"><CloudIcon size={12} /> Sincronizado</span>
               ) : (
-                <span className="flex items-center gap-1.5 text-[10px] font-black text-amber-500 bg-amber-50 px-4 py-1.5 rounded-full border border-amber-100 uppercase tracking-widest shadow-sm"><CloudOffIcon size={14} /> Offline Mode</span>
+                <span className="flex items-center gap-1.5 text-[11px] font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-100"><CloudOffIcon size={12} /> Modo Local</span>
               )}
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-            <nav className="flex bg-white rounded-3xl shadow-sm border border-slate-100 p-2 w-full md:w-auto overflow-x-auto">
-              <button onClick={() => setViewMode('list')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Lista</button>
-              <button onClick={() => setViewMode('gantt')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'gantt' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Gantt</button>
-              <button onClick={() => setViewMode('calendar')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'calendar' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Calendario</button>
-            </nav>
-            <button onClick={() => setShowTeamModal(true)} className="flex items-center gap-2 bg-white text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-5 py-3 rounded-3xl border border-slate-100 shadow-sm transition-all text-xs font-black uppercase tracking-widest">
-              <SettingsIcon size={18} /> Equipo
+          
+          <div className="flex items-center gap-3">
+            <button onClick={() => setShowTeamModal(true)} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium">
+              <SettingsIcon size={16} /> <span className="hidden sm:inline">Equipo</span>
             </button>
-            <button onClick={handleLogout} className="flex items-center gap-2 bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 px-5 py-3 rounded-3xl border border-slate-100 shadow-sm transition-all text-xs font-black uppercase tracking-widest">
-              <LogOutIcon size={18} /> Salir
+            <div className="w-px h-5 bg-slate-200"></div>
+            <button onClick={handleLogout} className="flex items-center gap-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium">
+              <LogOutIcon size={16} /> <span className="hidden sm:inline">Salir</span>
             </button>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        {/* TARJETAS DE RESUMEN */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {userBalances.map(u => (
-            <div key={u.id} className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all duration-700">
-              <div className={`absolute top-0 left-0 w-2.5 h-full ${u.color} opacity-80`} />
-              <div className="flex justify-between items-start mb-10">
-                <div><h3 className="text-2xl font-black text-slate-800 tracking-tight leading-none mb-2 uppercase">{u.name}</h3><span className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest"><MapPinIcon size={12} /> {u.region}</span></div>
-                <div className="text-right"><div className="text-5xl font-black text-slate-900 leading-none tracking-tighter">{u.remaining}</div><div className="text-[10px] font-black text-slate-300 uppercase tracking-widest mt-2">Días Libres</div></div>
+            <div 
+              key={u.id} 
+              onClick={() => handleUserCardClick(u.id)}
+              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] cursor-pointer hover:border-slate-300 hover:shadow-md transition-all group flex flex-col justify-between h-full"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-inner ${u.color}`}>
+                    {getInitials(u.name)}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900 leading-tight group-hover:text-indigo-600 transition-colors">{u.name}</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">{u.region}</p>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-4">
-                <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-slate-400"><span>Progreso</span><span className="text-slate-800">{u.used} de {u.totalDays}</span></div>
-                <div className="bg-slate-100 h-4 rounded-full overflow-hidden shadow-inner border border-slate-50 p-0.5"><div className={`${u.color} h-full transition-all duration-1000 ease-in-out rounded-full shadow-md`} style={{ width: `${(u.used / u.totalDays) * 100}%` }} /></div>
+              <div>
+                <div className="flex items-end justify-between mb-2">
+                  <div className="text-3xl font-bold text-slate-900 tracking-tight leading-none">{u.remaining}</div>
+                  <div className="text-xs font-medium text-slate-500 mb-1">días libres</div>
+                </div>
+                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                  <div className={`${u.color} h-full rounded-full transition-all duration-1000 ease-out`} style={{ width: `${(u.used / u.totalDays) * 100}%` }} />
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-20">
-          <section className="lg:col-span-4 bg-white p-8 rounded-[48px] border border-slate-100 shadow-sm space-y-8 animate-in slide-in-from-left duration-700">
-            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Añadir Solicitud</h2>
-            {msg.text && (<div className={`p-5 rounded-3xl text-xs font-bold flex items-center gap-3 animate-in slide-in-from-top-4 border-2 ${msg.type === 'error' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>{msg.type === 'error' ? <AlertIcon size={20}/> : <CheckIcon size={20}/>} {msg.text}</div>)}
-            <form onSubmit={handleAdd} className="space-y-6">
-              <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Persona</label>
-                <select value={newUser} onChange={(e) => setNewUser(e.target.value)} className="w-full border-2 border-slate-50 rounded-2xl p-4 bg-slate-50 font-black text-slate-800 outline-none focus:bg-white focus:ring-8 focus:ring-blue-50 transition-all cursor-pointer shadow-sm">
-                  {users.length === 0 && <option value="">---</option>}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pb-20">
+          
+          {/* PANEL IZQUIERDO: FORMULARIO */}
+          <section className="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] lg:sticky lg:top-24">
+            <h2 className="text-sm font-bold text-slate-800 mb-5 flex items-center gap-2">
+              <PlusIcon size={18} className="text-slate-400" /> Nuevo Registro
+            </h2>
+            
+            {msg.text && (
+              <div className={`p-3 rounded-xl text-xs font-medium flex items-center gap-2 mb-5 animate-in slide-in-from-top-2 border ${msg.type === 'error' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                {msg.type === 'error' ? <AlertIcon size={16}/> : <CheckIcon size={16}/>} {msg.text}
+              </div>
+            )}
+            
+            <form onSubmit={handleAdd} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1.5">Miembro del equipo</label>
+                <select value={newUser} onChange={(e) => setNewUser(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3 bg-slate-50/50 text-sm font-medium text-slate-800 outline-none focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer">
+                  {users.length === 0 && <option value="">No hay miembros...</option>}
                   {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                 </select>
               </div>
-              <CustomDatePicker label="Desde" value={newStart} onChange={setNewStart} userId={newUser} users={users} />
-              <CustomDatePicker label="Hasta" value={newEnd} onChange={setNewEnd} userId={newUser} users={users} />
-              <button type="submit" disabled={users.length === 0} className="w-full bg-slate-900 text-white py-6 rounded-[32px] font-black text-sm uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-blue-600 hover:-translate-y-2 transition-all shadow-2xl active:scale-95 mt-6 disabled:opacity-50 disabled:hover:-translate-y-0"><PlusIcon size={20} /> Guardar Registro</button>
+              <CustomDatePicker label="Inicio de vacaciones" value={newStart} onChange={setNewStart} userId={newUser} users={users} />
+              <CustomDatePicker label="Fin de vacaciones" value={newEnd} onChange={setNewEnd} userId={newUser} users={users} />
+              
+              <button type="submit" disabled={users.length === 0} className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-slate-800 transition-all shadow-md active:scale-[0.98] mt-2 disabled:opacity-50 disabled:pointer-events-none">
+                Guardar fechas
+              </button>
             </form>
           </section>
 
-          <section className="lg:col-span-8 bg-white rounded-[48px] border border-slate-100 shadow-sm p-10 overflow-hidden min-h-[600px]">
-            {viewMode === 'list' && (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead><tr className="text-left text-[10px] text-slate-300 uppercase font-black tracking-widest border-b border-slate-50"><th className="pb-8 px-4">Empleado</th><th className="pb-8">Fechas</th><th className="pb-8 text-center">Laborables</th><th className="pb-8 text-right pr-8">Acción</th></tr></thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {vacations.length === 0 ? <tr><td colSpan="4" className="py-32 text-center text-slate-200 italic font-bold text-xl uppercase tracking-tighter">Historial vacío</td></tr> : 
-                    vacations.sort((a,b) => new Date(a.startDate) - new Date(b.startDate)).map(v => {
-                      const uColor = users.find(u => u.id === v.userId)?.color || 'bg-slate-300';
-                      return (
-                        <tr key={v.id} className="group hover:bg-slate-50 transition-all"><td className="py-8 px-4"><div className="flex items-center gap-4 font-black text-slate-800 text-xl tracking-tighter uppercase"><span className={`w-4 h-4 rounded-full shadow-md ${uColor}`} />{v.userName}</div></td><td className="text-sm text-slate-500 font-black">{new Date(v.startDate).toLocaleDateString('es-ES')} <span className="text-slate-200 mx-2">—</span> {new Date(v.endDate).toLocaleDateString('es-ES')}</td><td className="text-center"><span className="bg-slate-100 text-slate-800 text-xs font-black px-5 py-2 rounded-2xl border-2 border-slate-50 shadow-sm">{v.days} d.</span></td><td className="text-right pr-4"><button onClick={() => removeVaca(v.id)} className="text-slate-200 hover:text-red-500 transition-all p-4 hover:bg-red-50 rounded-3xl"><TrashIcon size={24}/></button></td></tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+          {/* PANEL DERECHO: VISTAS DE DATOS */}
+          <section className="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden min-h-[500px] flex flex-col">
+            
+            {/* Controles Segmentados (Estilo macOS) */}
+            <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+              <h2 className="text-sm font-bold text-slate-800">Visualización</h2>
+              <div className="flex bg-slate-200/60 p-1 rounded-lg">
+                <button onClick={() => setViewMode('list')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${viewMode === 'list' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                  <ListIcon size={14} /> Lista
+                </button>
+                <button onClick={() => setViewMode('gantt')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${viewMode === 'gantt' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                  <CalendarDaysIcon size={14} /> Gantt
+                </button>
+                <button onClick={() => setViewMode('calendar')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${viewMode === 'calendar' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                  <GridIcon size={14} /> Calendario
+                </button>
               </div>
-            )}
-            {viewMode === 'gantt' && (
-              <div className="overflow-x-auto pb-8 scrollbar-hide">
-                <div className="min-w-[1000px] space-y-10 pt-10 px-4">
-                  <div className="flex mb-6 border-b border-slate-100 pb-8"><div className="w-56 sticky left-0 bg-white z-10 font-black text-[11px] text-slate-300 uppercase tracking-widest text-left">Plan Anual</div><div className="flex-1 grid grid-cols-12 text-center text-[11px] font-black text-slate-300 uppercase tracking-widest">{["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"].map(m => <div key={m}>{m}</div>)}</div></div>
-                  {users.map(u => (
-                    <div key={u.id} className="flex h-20 items-center group transition-all text-left"><div className="w-56 sticky left-0 bg-white z-10 text-xl font-black text-slate-800 flex items-center gap-4 uppercase tracking-tighter text-left"><span className={`w-4 h-4 rounded-full shadow-lg ${u.color}`} /> {u.name}</div><div className="flex-1 h-16 relative bg-slate-50 rounded-[32px] mx-4 shadow-inner border-2 border-slate-100 overflow-hidden"><div className="absolute inset-0 grid grid-cols-12 pointer-events-none">{[...Array(12)].map((_, i) => <div key={i} className="border-r border-slate-200/50 h-full last:border-0" />)}</div>
-                    {vacations.filter(v => v.userId === u.id).map(v => {
-                      const start = new Date(v.startDate); const end = new Date(v.endDate); const totalMs = new Date(2026, 11, 31) - new Date(2026, 0, 1);
-                      const left = ((start - new Date(2026, 0, 1)) / totalMs) * 100; const width = ((end - start) / totalMs) * 100 + 0.5;
-                      return (<div key={v.id} className={`absolute h-full ${u.color} shadow-2xl cursor-help hover:brightness-110 border-x-8 border-white/5 transition-all`} style={{ left: `${left}%`, width: `${width}%` }} title={`${v.userName}: ${v.startDate} al ${v.endDate}`} />);
-                    })}</div></div>
-                  ))}
+            </div>
+
+            <div className="p-6 flex-1">
+              {viewMode === 'list' && (
+                <div className="overflow-x-auto animate-in fade-in duration-300">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-100">
+                        <th className="pb-3 px-2">Empleado</th>
+                        <th className="pb-3">Periodo</th>
+                        <th className="pb-3 text-center">Días Consumidos</th>
+                        <th className="pb-3 text-right pr-2">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {vacations.length === 0 ? <tr><td colSpan="4" className="py-20 text-center text-slate-400 text-sm font-medium">No hay vacaciones registradas</td></tr> : 
+                      vacations.sort((a,b) => new Date(a.startDate) - new Date(b.startDate)).map(v => {
+                        const uColor = users.find(u => u.id === v.userId)?.color || 'bg-slate-300';
+                        return (
+                          <tr key={v.id} className="hover:bg-slate-50/50 transition-colors group">
+                            <td className="py-4 px-2">
+                              <div className="flex items-center gap-3">
+                                <span className={`w-2.5 h-2.5 rounded-full ${uColor}`} />
+                                <span className="font-medium text-slate-800 text-sm">{v.userName}</span>
+                              </div>
+                            </td>
+                            <td className="text-sm text-slate-600">
+                              {new Date(v.startDate).toLocaleDateString('es-ES', {day:'2-digit', month:'short'})} <span className="text-slate-300 mx-1">→</span> {new Date(v.endDate).toLocaleDateString('es-ES', {day:'2-digit', month:'short'})}
+                            </td>
+                            <td className="text-center">
+                              <span className="bg-slate-100 text-slate-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-slate-200">{v.days}</span>
+                            </td>
+                            <td className="text-right pr-2">
+                              <button onClick={() => removeVaca(v.id)} className="text-slate-300 hover:text-rose-600 p-2 rounded-md hover:bg-rose-50 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"><TrashIcon size={16}/></button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
-            )}
-            {viewMode === 'calendar' && renderCalendarView()}
+              )}
+
+              {viewMode === 'gantt' && (
+                <div className="overflow-x-auto pb-4 scrollbar-hide animate-in fade-in duration-300 border border-slate-200 rounded-xl">
+                  <div className="min-w-[900px] bg-white">
+                    <div className="flex border-b border-slate-200 bg-slate-50">
+                      <div className="w-48 shrink-0 sticky left-0 z-20 bg-slate-50 border-r border-slate-200 p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center">Miembros</div>
+                      <div className="flex-1 grid grid-cols-12 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider divide-x divide-slate-200">
+                        {["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"].map(m => <div key={m} className="py-3">{m}</div>)}
+                      </div>
+                    </div>
+                    
+                    <div className="divide-y divide-slate-100 relative">
+                      {/* Grid de fondo */}
+                      <div className="absolute inset-0 flex pl-48 pointer-events-none">
+                        <div className="flex-1 grid grid-cols-12 divide-x divide-slate-100/50">
+                           {[...Array(12)].map((_, i) => <div key={i} className="h-full" />)}
+                        </div>
+                      </div>
+
+                      {users.map(u => (
+                        <div key={u.id} className="flex h-14 items-center group hover:bg-slate-50/50 transition-colors relative z-10">
+                          <div className="w-48 shrink-0 sticky left-0 z-20 bg-white group-hover:bg-slate-50/50 border-r border-slate-200 p-3 flex items-center gap-3 shadow-[2px_0_5px_rgba(0,0,0,0.02)] transition-colors">
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-sm ${u.color}`}>{getInitials(u.name)}</span>
+                            <span className="text-sm font-medium text-slate-800 truncate">{u.name}</span>
+                          </div>
+                          <div className="flex-1 h-full relative mx-3">
+                            {vacations.filter(v => v.userId === u.id).map(v => {
+                              const start = new Date(v.startDate); const end = new Date(v.endDate); const totalMs = new Date(2026, 11, 31) - new Date(2026, 0, 1);
+                              const left = ((start - new Date(2026, 0, 1)) / totalMs) * 100; const width = ((end - start) / totalMs) * 100 + 0.5;
+                              return (
+                                <div key={v.id} className={`absolute top-1/2 -translate-y-1/2 h-6 ${u.color} rounded-md shadow-sm cursor-help hover:brightness-110 transition-all z-10 border border-black/10`} style={{ left: `${left}%`, width: `${width}%` }} title={`${v.userName}: ${new Date(v.startDate).toLocaleDateString()} al ${new Date(v.endDate).toLocaleDateString()}`} />
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {viewMode === 'calendar' && renderCalendarView()}
+            </div>
           </section>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
