@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { initializeApp, getApps } from 'firebase/app';
 import { 
   getAuth, 
-  signInWithCustomToken, 
   signInAnonymously, 
   onAuthStateChanged 
 } from 'firebase/auth';
@@ -154,12 +153,15 @@ export default function App() {
   
   const [db, setDb] = useState(null);
   const [cloudActive, setCloudActive] = useState(false);
-  const [currentAppId, setCurrentAppId] = useState('local-demo');
+  
+  // ID FIJO: Asegura que la base de datos lea siempre la misma "carpeta" 
+  // independientemente de dónde compiles el código.
+  const STABLE_APP_ID = 'vacaciones-equipo-2026'; 
 
   // EFECTO DE INICIALIZACIÓN Y CARGA
   useEffect(() => {
     const initProject = () => {
-      // 1. Inyectar Tailwind CDN
+      // Inyectar Tailwind CDN
       if (!document.getElementById('tailwind-cdn')) {
         const script = document.createElement('script');
         script.id = 'tailwind-cdn';
@@ -176,63 +178,76 @@ export default function App() {
     };
     initProject();
 
-    // 2. CONFIGURACIÓN SEGURA DE FIREBASE CON VARIABLES DE ENTORNO (.env)
-    // Utilizamos un try/catch preventivo por si el entorno no soporta import.meta
-    let envApiKey, envAuthDomain, envProjectId, envStorageBucket, envMessagingSenderId, envAppId, envMeasurementId;
+    // TU CONFIGURACIÓN DE FIREBASE (Usa exclusivamente variables de entorno)
+    let envConfig = {};
     try {
-      envApiKey = import.meta.env.VITE_FIREBASE_API_KEY;
-      envAuthDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
-      envProjectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
-      envStorageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
-      envMessagingSenderId = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
-      envAppId = import.meta.env.VITE_FIREBASE_APP_ID;
-      envMeasurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID; // Añadido Measurement ID
+      envConfig = {
+        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: import.meta.env.VITE_FIREBASE_APP_ID,
+        measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+      };
     } catch (e) {
-      // Fallback seguro si import.meta.env no está disponible
+      // Manejar error si import.meta.env no está disponible
     }
 
     const firebaseConfig = {
-      apiKey: envApiKey || "",
-      authDomain: envAuthDomain || "",
-      projectId: envProjectId || "",
-      storageBucket: envStorageBucket || "",
-      messagingSenderId: envMessagingSenderId || "",
-      appId: envAppId || "",
-      measurementId: envMeasurementId || "" // Añadido Measurement ID al config
+      apiKey: envConfig.apiKey,
+      authDomain: envConfig.authDomain,
+      projectId: envConfig.projectId,
+      storageBucket: envConfig.storageBucket,
+      messagingSenderId: envConfig.messagingSenderId,
+      appId: envConfig.appId,
+      measurementId: envConfig.measurementId
     };
 
     try {
-      // Comprobamos si tenemos al menos la API Key configurada en el .env
-      if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "") {
+      // Si falta la apiKey (ej. entorno sin variables), activamos modo local
+      if (!firebaseConfig.apiKey) {
+        console.warn("Variables de entorno no encontradas. Activando modo local.");
         setCloudActive(false);
         setSessionUser({ uid: 'local-admin' });
         const saved = localStorage.getItem('vacas_v_final_data_pro');
         if (saved) setVacations(JSON.parse(saved));
       } else {
-        // Inicialización real en la nube con tu base de datos
+        // Inicialización real en tu propia base de datos
         const fbApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
         const fbAuth = getAuth(fbApp);
         const fbDb = getFirestore(fbApp);
         setDb(fbDb);
         setCloudActive(true);
-        setCurrentAppId('vacaciones-equipo-2026');
-        signInAnonymously(fbAuth).then(() => onAuthStateChanged(fbAuth, setSessionUser));
+        
+        // Forzamos autenticación anónima para acceder a tus reglas
+        signInAnonymously(fbAuth).then(() => onAuthStateChanged(fbAuth, setSessionUser)).catch(e => {
+          console.error("Error Auth Firebase:", e);
+        });
       }
     } catch (e) {
-      console.warn("Fallo al conectar con Firebase. Fallback a modo local.", e);
+      console.warn("Fallo general al conectar con Firebase.", e);
       setCloudActive(false);
       setSessionUser({ uid: 'local-admin' });
     }
   }, []);
 
-  // Sincronización
+  // Sincronización Firestore
   useEffect(() => {
     if (!sessionUser || !cloudActive || !db) return;
-    return onSnapshot(collection(db, 'artifacts', currentAppId, 'public', 'data', 'vacaciones'), (snap) => {
-      setVacations(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    
+    // Ruta inamovible en tu base de datos
+    const path = collection(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'vacaciones');
+    const unsubscribe = onSnapshot(path, (snapshot) => {
+      setVacations(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (error) => {
+      console.error("Error al leer datos (Revisa tus Reglas de Firestore):", error);
     });
-  }, [sessionUser, cloudActive, db, currentAppId]);
 
+    return () => unsubscribe();
+  }, [sessionUser, cloudActive, db]);
+
+  // Sincronización Local (Fallback)
   useEffect(() => {
     if (!cloudActive && vacations.length >= 0) {
       localStorage.setItem('vacas_v_final_data_pro', JSON.stringify(vacations));
@@ -269,18 +284,24 @@ export default function App() {
     const entry = { userId: newUser, userName: bal.name, startDate: newStart, endDate: newEnd, days, status: 'Aprobado' };
 
     if (cloudActive && db) {
-      const docRef = doc(collection(db, 'artifacts', currentAppId, 'public', 'data', 'vacaciones'));
-      await setDoc(docRef, entry);
+      try {
+        const docRef = doc(collection(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'vacaciones'));
+        await setDoc(docRef, entry);
+        setMsg({ text: 'Guardado en tu Nube', type: 'success' });
+      } catch (err) {
+        console.error(err);
+        setMsg({ text: 'Permiso denegado en tu BDD', type: 'error' });
+      }
     } else {
       setVacations(prev => [...prev, { ...entry, id: Date.now().toString() }]);
+      setMsg({ text: 'Guardado Localmente', type: 'success' });
     }
     setNewStart(''); setNewEnd(''); setCalUserFilter(newUser);
-    setMsg({ text: 'Guardado correctamente', type: 'success' });
     setTimeout(() => setMsg({ text: '', type: '' }), 3000);
   };
 
   const removeVaca = async (id) => {
-    if (cloudActive && db) await deleteDoc(doc(db, 'artifacts', currentAppId, 'public', 'data', 'vacaciones', id));
+    if (cloudActive && db) await deleteDoc(doc(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'vacaciones', id));
     else setVacations(prev => prev.filter(v => v.id !== id));
   };
 
@@ -362,7 +383,7 @@ export default function App() {
             </h1>
             <div className="flex items-center gap-3">
               {cloudActive ? (
-                <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-100 uppercase tracking-widest shadow-sm"><CloudIcon size={14} /> Cloud Active</span>
+                <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-100 uppercase tracking-widest shadow-sm"><CloudIcon size={14} /> Tu Nube Activa</span>
               ) : (
                 <span className="flex items-center gap-1.5 text-[10px] font-black text-amber-500 bg-amber-50 px-4 py-1.5 rounded-full border border-amber-100 uppercase tracking-widest shadow-sm"><CloudOffIcon size={14} /> Offline Mode</span>
               )}
