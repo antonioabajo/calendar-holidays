@@ -14,7 +14,7 @@ import {
   deleteDoc
 } from 'firebase/firestore';
 
-// --- ICONOS SVG INTEGRADOS (Garantizan que se vea igual sin dependencias externas) ---
+// --- ICONOS SVG INTEGRADOS ---
 const Icon = ({ d, size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d={d} />
@@ -38,12 +38,25 @@ const LoaderIcon = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" hei
 const CalendarDaysIcon = (p) => <Icon {...p} d="M21 10H3M16 2v4M8 2v4M3 6h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />;
 const LockIcon = (p) => <Icon {...p} d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2Z M7 11V7a5 5 0 0 1 10 0v4" />;
 const LogOutIcon = (p) => <Icon {...p} d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" />;
+const SettingsIcon = (p) => <Icon {...p} d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />;
+const UserPlusIcon = (p) => <Icon {...p} d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M19 8v6 M22 11h-6" />;
+const XIcon = (p) => <Icon {...p} d="M18 6 6 18 M6 6l12 12" />;
 
-// --- CONFIGURACIÓN DE DATOS MAESTROS ---
-const INITIAL_USERS = [
+// --- CONFIGURACIÓN BASE (Solo como fallback si la base de datos está vacía) ---
+const FALLBACK_USERS = [
   { id: 'carlos', name: 'Carlos', totalDays: 24, region: 'Asturias', color: 'bg-blue-600', colorLight: 'bg-blue-100', text: 'text-blue-700' },
   { id: 'antonio', name: 'Antonio', totalDays: 24, region: 'Madrid', color: 'bg-emerald-600', colorLight: 'bg-emerald-100', text: 'text-emerald-700' },
   { id: 'ricardo', name: 'Ricardo', totalDays: 24, region: 'Granada', color: 'bg-purple-600', colorLight: 'bg-purple-100', text: 'text-purple-700' }
+];
+
+const TEAM_COLORS = [
+  { bg: 'bg-blue-600', light: 'bg-blue-100', text: 'text-blue-700' },
+  { bg: 'bg-emerald-600', light: 'bg-emerald-100', text: 'text-emerald-700' },
+  { bg: 'bg-purple-600', light: 'bg-purple-100', text: 'text-purple-700' },
+  { bg: 'bg-amber-600', light: 'bg-amber-100', text: 'text-amber-700' },
+  { bg: 'bg-rose-600', light: 'bg-rose-100', text: 'text-rose-700' },
+  { bg: 'bg-cyan-600', light: 'bg-cyan-100', text: 'text-cyan-700' },
+  { bg: 'bg-indigo-600', light: 'bg-indigo-100', text: 'text-indigo-700' },
 ];
 
 const HOLIDAYS_2026 = {
@@ -68,13 +81,13 @@ const HOLIDAYS_2026 = {
 };
 
 // --- COMPONENTES ---
-const CustomDatePicker = ({ label, value, onChange, userId }) => {
+const CustomDatePicker = ({ label, value, onChange, userId, users }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [viewDate, setViewDate] = useState(new Date(2026, 2, 1)); 
 
   useEffect(() => { if (value) setViewDate(new Date(value)); }, [value]);
 
-  const user = INITIAL_USERS.find(u => u.id === userId);
+  const user = users.find(u => u.id === userId);
   const region = user?.region;
   const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -150,8 +163,18 @@ export default function App() {
 
   const [isReady, setIsReady] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
+  
+  // --- ESTADO DEL EQUIPO Y VACACIONES ---
+  const [users, setUsers] = useState([]);
   const [vacations, setVacations] = useState([]);
-  const [newUser, setNewUser] = useState('carlos');
+  
+  // --- ESTADOS DE MODAL (NUEVO) ---
+  const [showTeamModal, setShowTeamModal] = useState(false);
+  const [newMemName, setNewMemName] = useState('');
+  const [newMemDays, setNewMemDays] = useState(24);
+  const [newMemRegion, setNewMemRegion] = useState('Nacional');
+
+  const [newUser, setNewUser] = useState('');
   const [newStart, setNewStart] = useState('');
   const [newEnd, setNewEnd] = useState('');
   const [viewMode, setViewMode] = useState('calendar');
@@ -161,9 +184,21 @@ export default function App() {
   const [db, setDb] = useState(null);
   const [cloudActive, setCloudActive] = useState(false);
   
-  // ID FIJO: Asegura que la base de datos lea siempre la misma "carpeta" 
-  // independientemente de dónde compiles el código.
   const STABLE_APP_ID = 'vacaciones-equipo-2026'; 
+
+  // Ajuste de selección por defecto si no hay nadie seleccionado
+  useEffect(() => {
+    if (users.length > 0 && !users.find(u => u.id === newUser)) {
+      setNewUser(users[0].id);
+    }
+  }, [users, newUser]);
+
+  // Si se borra el usuario filtrado, volvemos a mostrar todos
+  useEffect(() => {
+    if (calUserFilter !== 'all' && !users.find(u => u.id === calUserFilter)) {
+      setCalUserFilter('all');
+    }
+  }, [users, calUserFilter]);
 
   // EFECTO DE INICIALIZACIÓN Y CARGA
   useEffect(() => {
@@ -185,7 +220,6 @@ export default function App() {
     };
     initProject();
 
-    // TU CONFIGURACIÓN DE FIREBASE (Usa exclusivamente variables de entorno)
     let envConfig = {};
     try {
       envConfig = {
@@ -198,7 +232,7 @@ export default function App() {
         measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
       };
     } catch (e) {
-      // Manejar error si import.meta.env no está disponible
+      // Entorno no soporta import.meta
     }
 
     const firebaseConfig = {
@@ -212,28 +246,30 @@ export default function App() {
     };
 
     try {
-      // Si falta la apiKey (ej. entorno sin variables), activamos modo local
       if (!firebaseConfig.apiKey) {
-        console.warn("Variables de entorno no encontradas. Activando modo local.");
+        console.warn("Activando modo local.");
         setCloudActive(false);
         setSessionUser({ uid: 'local-admin' });
-        const saved = localStorage.getItem('vacas_v_final_data_pro');
-        if (saved) setVacations(JSON.parse(saved));
+        
+        const savedVacations = localStorage.getItem('vacas_v_final_data_pro');
+        if (savedVacations) setVacations(JSON.parse(savedVacations));
+        
+        const savedUsers = localStorage.getItem('vacas_team_pro');
+        if (savedUsers) setUsers(JSON.parse(savedUsers));
+        else setUsers(FALLBACK_USERS);
+
       } else {
-        // Inicialización real en tu propia base de datos
         const fbApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
         const fbAuth = getAuth(fbApp);
         const fbDb = getFirestore(fbApp);
         setDb(fbDb);
         setCloudActive(true);
         
-        // Forzamos autenticación anónima para acceder a tus reglas
         signInAnonymously(fbAuth).then(() => onAuthStateChanged(fbAuth, setSessionUser)).catch(e => {
           console.error("Error Auth Firebase:", e);
         });
       }
     } catch (e) {
-      console.warn("Fallo general al conectar con Firebase.", e);
       setCloudActive(false);
       setSessionUser({ uid: 'local-admin' });
     }
@@ -243,34 +279,46 @@ export default function App() {
   useEffect(() => {
     if (!sessionUser || !cloudActive || !db) return;
     
-    // Ruta inamovible en tu base de datos
-    const path = collection(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'vacaciones');
-    const unsubscribe = onSnapshot(path, (snapshot) => {
+    // Escuchar vacaciones
+    const pathVacs = collection(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'vacaciones');
+    const unsubscribeVacs = onSnapshot(pathVacs, (snapshot) => {
       setVacations(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (error) => {
-      console.error("Error al leer datos (Revisa tus Reglas de Firestore):", error);
-    });
+    }, (e) => console.error(e));
 
-    return () => unsubscribe();
+    // Escuchar Equipo
+    const pathTeam = collection(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'team');
+    const unsubscribeTeam = onSnapshot(pathTeam, (snapshot) => {
+      if (!snapshot.empty) {
+        setUsers(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      } else {
+        // Inicializamos con el equipo por defecto si la BD de equipo está vacía
+        FALLBACK_USERS.forEach(u => {
+          setDoc(doc(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'team', u.id), u);
+        });
+      }
+    }, (e) => console.error(e));
+
+    return () => { unsubscribeVacs(); unsubscribeTeam(); };
   }, [sessionUser, cloudActive, db]);
 
   // Sincronización Local (Fallback)
   useEffect(() => {
-    if (!cloudActive && vacations.length >= 0) {
+    if (!cloudActive) {
       localStorage.setItem('vacas_v_final_data_pro', JSON.stringify(vacations));
+      localStorage.setItem('vacas_team_pro', JSON.stringify(users));
     }
-  }, [vacations, cloudActive]);
+  }, [vacations, users, cloudActive]);
 
   const userBalances = useMemo(() => {
-    return INITIAL_USERS.map(u => {
+    return users.map(u => {
       const used = vacations.filter(v => v.userId === u.id).reduce((sum, v) => sum + v.days, 0);
       return { ...u, used, remaining: u.totalDays - used };
     });
-  }, [vacations]);
+  }, [vacations, users]);
 
   const calculateDays = (start, end, uid) => {
     let count = 0; let curr = new Date(start); const stop = new Date(end);
-    const reg = INITIAL_USERS.find(u => u.id === uid)?.region;
+    const reg = users.find(u => u.id === uid)?.region || 'Nacional';
     const holidays = [...HOLIDAYS_2026.Nacional, ...(HOLIDAYS_2026[reg] || [])].map(h => h.date);
     while (curr <= stop) {
       const dStr = curr.toISOString().split('T')[0];
@@ -296,7 +344,6 @@ export default function App() {
         await setDoc(docRef, entry);
         setMsg({ text: 'Guardado en tu Nube', type: 'success' });
       } catch (err) {
-        console.error(err);
         setMsg({ text: 'Permiso denegado en tu BDD', type: 'error' });
       }
     } else {
@@ -312,9 +359,46 @@ export default function App() {
     else setVacations(prev => prev.filter(v => v.id !== id));
   };
 
+  // --- GESTIÓN DEL EQUIPO ---
+  const handleAddMember = async (e) => {
+    e.preventDefault();
+    if (!newMemName) return;
+    
+    const newId = newMemName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now().toString().slice(-4);
+    const colorConf = TEAM_COLORS[users.length % TEAM_COLORS.length];
+    
+    const newMember = {
+      id: newId,
+      name: newMemName,
+      totalDays: parseInt(newMemDays),
+      region: newMemRegion,
+      color: colorConf.bg,
+      colorLight: colorConf.light,
+      text: colorConf.text
+    };
+
+    if (cloudActive && db) {
+      await setDoc(doc(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'team', newId), newMember);
+    } else {
+      setUsers(prev => [...prev, newMember]);
+    }
+    
+    setNewMemName('');
+    setNewMemDays(24);
+    setNewMemRegion('Nacional');
+  };
+
+  const handleRemoveMember = async (id) => {
+    if (users.length <= 1) return; // Obligamos a mantener al menos uno
+    if (cloudActive && db) {
+      await deleteDoc(doc(db, 'artifacts', STABLE_APP_ID, 'public', 'data', 'team', id));
+    } else {
+      setUsers(prev => prev.filter(u => u.id !== id));
+    }
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
-    // Aquí puedes cambiar la contraseña por la que quieras
     if (password === 'equipo2026') {
       setIsLoggedIn(true);
       localStorage.setItem('vacas_auth_pro', 'true');
@@ -338,7 +422,7 @@ export default function App() {
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calendario de Equipo</span>
           <select value={calUserFilter} onChange={(e) => setCalUserFilter(e.target.value)} className="text-sm bg-slate-50 border border-slate-200 rounded-2xl px-6 py-2 outline-none font-bold text-slate-700 cursor-pointer focus:ring-4 focus:ring-blue-50 transition-all">
             <option value="all">Ver todo el equipo</option>
-            {INITIAL_USERS.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+            {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -359,7 +443,7 @@ export default function App() {
               let cellStyle = "text-slate-500";
               if (isSun || isNat) cellStyle = "text-red-500 font-bold";
               let bg = "";
-              if (calUserFilter !== 'all' && userOnVaca) bg = INITIAL_USERS.find(u => u.id === calUserFilter).color;
+              if (calUserFilter !== 'all' && userOnVaca) bg = users.find(u => u.id === calUserFilter)?.color || 'bg-slate-400';
               else if (isToday) bg = "ring-2 ring-slate-800 ring-inset rounded-xl";
 
               grid.push(
@@ -367,9 +451,10 @@ export default function App() {
                   <span className={`text-[11px] ${cellStyle} ${bg && calUserFilter !== 'all' ? 'text-white' : ''}`}>{d}</span>
                   {calUserFilter === 'all' && activeVacs.length > 0 && (
                     <div className="flex gap-0.5 absolute bottom-1.5">
-                      {activeVacs.map(v => (
-                        <div key={`${v.id}-${v.userId}`} className={`w-1.5 h-1.5 rounded-full border border-white ${INITIAL_USERS.find(u => u.id === v.userId)?.color}`} />
-                      ))}
+                      {activeVacs.map(v => {
+                        const uColor = users.find(u => u.id === v.userId)?.color || 'bg-slate-400';
+                        return <div key={`${v.id}-${v.userId}`} className={`w-1.5 h-1.5 rounded-full border border-white ${uColor}`} />
+                      })}
                     </div>
                   )}
                 </div>
@@ -397,7 +482,6 @@ export default function App() {
     </div>
   );
 
-  // --- PANTALLA DE ACCESO (LOGIN) ---
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans">
@@ -412,18 +496,10 @@ export default function App() {
           
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Contraseña..."
-                className="w-full border-2 border-slate-50 rounded-2xl p-4 text-center font-bold text-slate-800 outline-none focus:bg-white focus:ring-8 focus:ring-blue-50 focus:border-blue-500 transition-all shadow-sm"
-              />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña..." className="w-full border-2 border-slate-50 rounded-2xl p-4 text-center font-bold text-slate-800 outline-none focus:bg-white focus:ring-8 focus:ring-blue-50 focus:border-blue-500 transition-all shadow-sm" />
               {loginError && <p className="text-red-500 text-xs font-bold text-center mt-3 animate-in slide-in-from-top-1">{loginError}</p>}
             </div>
-            <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-blue-600 hover:-translate-y-1 transition-all shadow-lg active:scale-95">
-              Entrar al Panel
-            </button>
+            <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-blue-600 hover:-translate-y-1 transition-all shadow-lg active:scale-95">Entrar al Panel</button>
           </form>
         </div>
       </div>
@@ -432,8 +508,62 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
+      
+      {/* MODAL DE EQUIPO */}
+      {showTeamModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-3">
+                <UsersIcon className="text-blue-600" /> Gestión del Equipo
+              </h2>
+              <button onClick={() => setShowTeamModal(false)} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
+                <XIcon size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 space-y-8">
+              {/* Añadir Usuario */}
+              <form onSubmit={handleAddMember} className="space-y-4 bg-slate-50 p-6 rounded-[24px] border border-slate-100">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Añadir Nuevo Miembro</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <input required type="text" placeholder="Nombre..." value={newMemName} onChange={e => setNewMemName(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
+                  <input required type="number" min="1" placeholder="Total Días..." value={newMemDays} onChange={e => setNewMemDays(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
+                  <select value={newMemRegion} onChange={e => setNewMemRegion(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-50 transition-all cursor-pointer text-slate-700">
+                    {Object.keys(HOLIDAYS_2026).map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+                <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">
+                  <UserPlusIcon size={16} /> Incorporar al Equipo
+                </button>
+              </form>
+
+              {/* Lista de Equipo */}
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Miembros Actuales ({users.length})</h3>
+                <div className="space-y-3">
+                  {users.map(u => (
+                    <div key={u.id} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-3 h-3 rounded-full ${u.color}`} />
+                        <div>
+                          <p className="font-bold text-slate-800 leading-none">{u.name}</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 tracking-widest">{u.region} • {u.totalDays} DÍAS</p>
+                        </div>
+                      </div>
+                      <button onClick={() => handleRemoveMember(u.id)} className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors" title="Eliminar miembro">
+                        <TrashIcon size={18} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto space-y-8">
-        
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter flex items-center gap-4 uppercase">
@@ -453,6 +583,9 @@ export default function App() {
               <button onClick={() => setViewMode('gantt')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'gantt' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Gantt</button>
               <button onClick={() => setViewMode('calendar')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'calendar' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Calendario</button>
             </nav>
+            <button onClick={() => setShowTeamModal(true)} className="flex items-center gap-2 bg-white text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-5 py-3 rounded-3xl border border-slate-100 shadow-sm transition-all text-xs font-black uppercase tracking-widest">
+              <SettingsIcon size={18} /> Equipo
+            </button>
             <button onClick={handleLogout} className="flex items-center gap-2 bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 px-5 py-3 rounded-3xl border border-slate-100 shadow-sm transition-all text-xs font-black uppercase tracking-widest">
               <LogOutIcon size={18} /> Salir
             </button>
@@ -480,9 +613,16 @@ export default function App() {
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Añadir Solicitud</h2>
             {msg.text && (<div className={`p-5 rounded-3xl text-xs font-bold flex items-center gap-3 animate-in slide-in-from-top-4 border-2 ${msg.type === 'error' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>{msg.type === 'error' ? <AlertIcon size={20}/> : <CheckIcon size={20}/>} {msg.text}</div>)}
             <form onSubmit={handleAdd} className="space-y-6">
-              <div className="space-y-2"><label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Persona</label><select value={newUser} onChange={(e) => setNewUser(e.target.value)} className="w-full border-2 border-slate-50 rounded-2xl p-4 bg-slate-50 font-black text-slate-800 outline-none focus:bg-white focus:ring-8 focus:ring-blue-50 transition-all cursor-pointer shadow-sm">{INITIAL_USERS.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}</select></div>
-              <CustomDatePicker label="Desde" value={newStart} onChange={setNewStart} userId={newUser} /><CustomDatePicker label="Hasta" value={newEnd} onChange={setNewEnd} userId={newUser} />
-              <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-[32px] font-black text-sm uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-blue-600 hover:-translate-y-2 transition-all shadow-2xl active:scale-95 mt-6"><PlusIcon size={20} /> Guardar Registro</button>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Persona</label>
+                <select value={newUser} onChange={(e) => setNewUser(e.target.value)} className="w-full border-2 border-slate-50 rounded-2xl p-4 bg-slate-50 font-black text-slate-800 outline-none focus:bg-white focus:ring-8 focus:ring-blue-50 transition-all cursor-pointer shadow-sm">
+                  {users.length === 0 && <option value="">---</option>}
+                  {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                </select>
+              </div>
+              <CustomDatePicker label="Desde" value={newStart} onChange={setNewStart} userId={newUser} users={users} />
+              <CustomDatePicker label="Hasta" value={newEnd} onChange={setNewEnd} userId={newUser} users={users} />
+              <button type="submit" disabled={users.length === 0} className="w-full bg-slate-900 text-white py-6 rounded-[32px] font-black text-sm uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-blue-600 hover:-translate-y-2 transition-all shadow-2xl active:scale-95 mt-6 disabled:opacity-50 disabled:hover:-translate-y-0"><PlusIcon size={20} /> Guardar Registro</button>
             </form>
           </section>
 
@@ -493,9 +633,12 @@ export default function App() {
                   <thead><tr className="text-left text-[10px] text-slate-300 uppercase font-black tracking-widest border-b border-slate-50"><th className="pb-8 px-4">Empleado</th><th className="pb-8">Fechas</th><th className="pb-8 text-center">Laborables</th><th className="pb-8 text-right pr-8">Acción</th></tr></thead>
                   <tbody className="divide-y divide-slate-50">
                     {vacations.length === 0 ? <tr><td colSpan="4" className="py-32 text-center text-slate-200 italic font-bold text-xl uppercase tracking-tighter">Historial vacío</td></tr> : 
-                    vacations.sort((a,b) => new Date(a.startDate) - new Date(b.startDate)).map(v => (
-                      <tr key={v.id} className="group hover:bg-slate-50 transition-all"><td className="py-8 px-4"><div className="flex items-center gap-4 font-black text-slate-800 text-xl tracking-tighter uppercase"><span className={`w-4 h-4 rounded-full shadow-md ${INITIAL_USERS.find(u => u.id === v.userId)?.color}`} />{v.userName}</div></td><td className="text-sm text-slate-500 font-black">{new Date(v.startDate).toLocaleDateString('es-ES')} <span className="text-slate-200 mx-2">—</span> {new Date(v.endDate).toLocaleDateString('es-ES')}</td><td className="text-center"><span className="bg-slate-100 text-slate-800 text-xs font-black px-5 py-2 rounded-2xl border-2 border-slate-50 shadow-sm">{v.days} d.</span></td><td className="text-right pr-4"><button onClick={() => removeVaca(v.id)} className="text-slate-200 hover:text-red-500 transition-all p-4 hover:bg-red-50 rounded-3xl"><TrashIcon size={24}/></button></td></tr>
-                    ))}
+                    vacations.sort((a,b) => new Date(a.startDate) - new Date(b.startDate)).map(v => {
+                      const uColor = users.find(u => u.id === v.userId)?.color || 'bg-slate-300';
+                      return (
+                        <tr key={v.id} className="group hover:bg-slate-50 transition-all"><td className="py-8 px-4"><div className="flex items-center gap-4 font-black text-slate-800 text-xl tracking-tighter uppercase"><span className={`w-4 h-4 rounded-full shadow-md ${uColor}`} />{v.userName}</div></td><td className="text-sm text-slate-500 font-black">{new Date(v.startDate).toLocaleDateString('es-ES')} <span className="text-slate-200 mx-2">—</span> {new Date(v.endDate).toLocaleDateString('es-ES')}</td><td className="text-center"><span className="bg-slate-100 text-slate-800 text-xs font-black px-5 py-2 rounded-2xl border-2 border-slate-50 shadow-sm">{v.days} d.</span></td><td className="text-right pr-4"><button onClick={() => removeVaca(v.id)} className="text-slate-200 hover:text-red-500 transition-all p-4 hover:bg-red-50 rounded-3xl"><TrashIcon size={24}/></button></td></tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -504,7 +647,7 @@ export default function App() {
               <div className="overflow-x-auto pb-8 scrollbar-hide">
                 <div className="min-w-[1000px] space-y-10 pt-10 px-4">
                   <div className="flex mb-6 border-b border-slate-100 pb-8"><div className="w-56 sticky left-0 bg-white z-10 font-black text-[11px] text-slate-300 uppercase tracking-widest text-left">Plan Anual</div><div className="flex-1 grid grid-cols-12 text-center text-[11px] font-black text-slate-300 uppercase tracking-widest">{["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"].map(m => <div key={m}>{m}</div>)}</div></div>
-                  {INITIAL_USERS.map(u => (
+                  {users.map(u => (
                     <div key={u.id} className="flex h-20 items-center group transition-all text-left"><div className="w-56 sticky left-0 bg-white z-10 text-xl font-black text-slate-800 flex items-center gap-4 uppercase tracking-tighter text-left"><span className={`w-4 h-4 rounded-full shadow-lg ${u.color}`} /> {u.name}</div><div className="flex-1 h-16 relative bg-slate-50 rounded-[32px] mx-4 shadow-inner border-2 border-slate-100 overflow-hidden"><div className="absolute inset-0 grid grid-cols-12 pointer-events-none">{[...Array(12)].map((_, i) => <div key={i} className="border-r border-slate-200/50 h-full last:border-0" />)}</div>
                     {vacations.filter(v => v.userId === u.id).map(v => {
                       const start = new Date(v.startDate); const end = new Date(v.endDate); const totalMs = new Date(2026, 11, 31) - new Date(2026, 0, 1);
