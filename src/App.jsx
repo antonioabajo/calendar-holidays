@@ -38,7 +38,7 @@ const CloudOffIcon = (p) => <Icon {...p} d="m2 2 20 20M5.78 5.78l-.28.22C2.2 6.3
 const LoaderIcon = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`animate-spin ${p.className}`}><path d="M21 12a9 9 0 1 1-6.21-8.56"/></svg>;
 const CalendarDaysIcon = (p) => <Icon {...p} d="M21 10H3M16 2v4M8 2v4M3 6h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />;
 
-// --- CONFIGURACIÓN DE DATOS ---
+// --- CONFIGURACIÓN DE DATOS MAESTROS ---
 const INITIAL_USERS = [
   { id: 'carlos', name: 'Carlos', totalDays: 24, region: 'Asturias', color: 'bg-blue-600', colorLight: 'bg-blue-100', text: 'text-blue-700' },
   { id: 'antonio', name: 'Antonio', totalDays: 24, region: 'Madrid', color: 'bg-emerald-600', colorLight: 'bg-emerald-100', text: 'text-emerald-700' },
@@ -156,7 +156,7 @@ export default function App() {
   const [cloudActive, setCloudActive] = useState(false);
   const [currentAppId, setCurrentAppId] = useState('local-demo');
 
-  // EFECTO DE INICIALIZACIÓN
+  // EFECTO DE INICIALIZACIÓN Y CARGA
   useEffect(() => {
     const initProject = () => {
       // 1. Inyectar Tailwind CDN
@@ -176,25 +176,50 @@ export default function App() {
     };
     initProject();
 
-    // 3. Lógica de Datos
+    // 2. CONFIGURACIÓN SEGURA DE FIREBASE CON VARIABLES DE ENTORNO (.env)
+    // Utilizamos un try/catch preventivo por si el entorno no soporta import.meta
+    let envApiKey, envAuthDomain, envProjectId, envStorageBucket, envMessagingSenderId, envAppId, envMeasurementId;
     try {
-      const configStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-      if (configStr) {
-        const config = JSON.parse(configStr);
-        const fbApp = getApps().length === 0 ? initializeApp(config) : getApps()[0];
-        const fbAuth = getAuth(fbApp);
-        const fbDb = getFirestore(fbApp);
-        setDb(fbDb);
-        setCloudActive(true);
-        setCurrentAppId(typeof __app_id !== 'undefined' ? __app_id : 'gemini-app');
-        signInAnonymously(fbAuth).then(() => onAuthStateChanged(fbAuth, setSessionUser));
-      } else {
+      envApiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+      envAuthDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+      envProjectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+      envStorageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+      envMessagingSenderId = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
+      envAppId = import.meta.env.VITE_FIREBASE_APP_ID;
+      envMeasurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID; // Añadido Measurement ID
+    } catch (e) {
+      // Fallback seguro si import.meta.env no está disponible
+    }
+
+    const firebaseConfig = {
+      apiKey: envApiKey || "",
+      authDomain: envAuthDomain || "",
+      projectId: envProjectId || "",
+      storageBucket: envStorageBucket || "",
+      messagingSenderId: envMessagingSenderId || "",
+      appId: envAppId || "",
+      measurementId: envMeasurementId || "" // Añadido Measurement ID al config
+    };
+
+    try {
+      // Comprobamos si tenemos al menos la API Key configurada en el .env
+      if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "") {
         setCloudActive(false);
         setSessionUser({ uid: 'local-admin' });
         const saved = localStorage.getItem('vacas_v_final_data_pro');
         if (saved) setVacations(JSON.parse(saved));
+      } else {
+        // Inicialización real en la nube con tu base de datos
+        const fbApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+        const fbAuth = getAuth(fbApp);
+        const fbDb = getFirestore(fbApp);
+        setDb(fbDb);
+        setCloudActive(true);
+        setCurrentAppId('vacaciones-equipo-2026');
+        signInAnonymously(fbAuth).then(() => onAuthStateChanged(fbAuth, setSessionUser));
       }
     } catch (e) {
+      console.warn("Fallo al conectar con Firebase. Fallback a modo local.", e);
       setCloudActive(false);
       setSessionUser({ uid: 'local-admin' });
     }
@@ -265,7 +290,7 @@ export default function App() {
       <div className="space-y-6 animate-in fade-in duration-700">
         <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-3xl border border-slate-100 shadow-sm gap-4">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calendario de Equipo</span>
-          <select value={calUserFilter} onChange={(e) => setCalUserFilter(e.target.value)} className="text-sm bg-slate-50 border border-slate-200 rounded-2xl px-6 py-2 outline-none font-bold text-slate-700 cursor-pointer">
+          <select value={calUserFilter} onChange={(e) => setCalUserFilter(e.target.value)} className="text-sm bg-slate-50 border border-slate-200 rounded-2xl px-6 py-2 outline-none font-bold text-slate-700 cursor-pointer focus:ring-4 focus:ring-blue-50 transition-all">
             <option value="all">Ver todo el equipo</option>
             {INITIAL_USERS.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
@@ -279,7 +304,7 @@ export default function App() {
             for(let i=0; i<offset; i++) grid.push(<div key={`off-${i}`} />);
             for(let d=1; d<=daysInMonth; d++) {
               const dStr = `2026-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-              const isToday = dStr === '2026-03-07';
+              const isToday = dStr === '2026-03-08';
               const isSun = new Date(2026, mIdx, d).getDay() === 0;
               const isNat = HOLIDAYS_2026.Nacional.some(h => h.date === dStr);
               const activeVacs = vacations.filter(v => dStr >= v.startDate && dStr <= v.endDate);
@@ -320,7 +345,7 @@ export default function App() {
   };
 
   if (!isReady) return (
-    <div className="fixed inset-0 bg-slate-50 flex flex-col items-center justify-center">
+    <div className="fixed inset-0 bg-slate-50 flex flex-col items-center justify-center z-[9999]">
       <LoaderIcon className="text-blue-600 mb-4" size={48} />
       <p className="text-slate-400 font-bold text-xs uppercase tracking-widest animate-pulse">Iniciando Panel de Gestión...</p>
     </div>
@@ -368,7 +393,7 @@ export default function App() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-20">
           <section className="lg:col-span-4 bg-white p-8 rounded-[48px] border border-slate-100 shadow-sm space-y-8 animate-in slide-in-from-left duration-700">
-            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Nueva Solicitud</h2>
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Añadir Solicitud</h2>
             {msg.text && (<div className={`p-5 rounded-3xl text-xs font-bold flex items-center gap-3 animate-in slide-in-from-top-4 border-2 ${msg.type === 'error' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>{msg.type === 'error' ? <AlertIcon size={20}/> : <CheckIcon size={20}/>} {msg.text}</div>)}
             <form onSubmit={handleAdd} className="space-y-6">
               <div className="space-y-2"><label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Persona</label><select value={newUser} onChange={(e) => setNewUser(e.target.value)} className="w-full border-2 border-slate-50 rounded-2xl p-4 bg-slate-50 font-black text-slate-800 outline-none focus:bg-white focus:ring-8 focus:ring-blue-50 transition-all cursor-pointer shadow-sm">{INITIAL_USERS.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}</select></div>
