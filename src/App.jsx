@@ -36,6 +36,8 @@ const CloudIcon = (p) => <Icon {...p} d="M17.5 19c2.5 0 4.5-2 4.5-4.5 0-2.4-1.9-
 const CloudOffIcon = (p) => <Icon {...p} d="m2 2 20 20M5.78 5.78l-.28.22C2.2 6.3 0 9.2 0 12.5 0 16.1 2.9 19 6.5 19h10.72M22.56 16.56A4.5 4.5 0 0 0 18 9c-.28 0-.56.03-.82.09C16.3 5.4 13.1 3 9.5 3c-.5 0-.98.05-1.44.15" />;
 const LoaderIcon = (p) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`animate-spin ${p.className}`}><path d="M21 12a9 9 0 1 1-6.21-8.56"/></svg>;
 const CalendarDaysIcon = (p) => <Icon {...p} d="M21 10H3M16 2v4M8 2v4M3 6h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />;
+const LockIcon = (p) => <Icon {...p} d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2Z M7 11V7a5 5 0 0 1 10 0v4" />;
+const LogOutIcon = (p) => <Icon {...p} d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" />;
 
 // --- CONFIGURACIÓN DE DATOS MAESTROS ---
 const INITIAL_USERS = [
@@ -141,6 +143,11 @@ const CustomDatePicker = ({ label, value, onChange, userId }) => {
 
 // --- APP PRINCIPAL ---
 export default function App() {
+  // --- ESTADOS DE ACCESO ---
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('vacas_auth_pro') === 'true');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
   const [isReady, setIsReady] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
   const [vacations, setVacations] = useState([]);
@@ -305,6 +312,24 @@ export default function App() {
     else setVacations(prev => prev.filter(v => v.id !== id));
   };
 
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Aquí puedes cambiar la contraseña por la que quieras
+    if (password === 'equipo2026') {
+      setIsLoggedIn(true);
+      localStorage.setItem('vacas_auth_pro', 'true');
+      setLoginError('');
+    } else {
+      setLoginError('Contraseña incorrecta');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setPassword('');
+    localStorage.removeItem('vacas_auth_pro');
+  };
+
   const renderCalendarView = () => {
     const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     return (
@@ -372,6 +397,39 @@ export default function App() {
     </div>
   );
 
+  // --- PANTALLA DE ACCESO (LOGIN) ---
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans">
+        <div className="bg-white p-10 rounded-[40px] shadow-xl border border-slate-100 w-full max-w-md animate-in zoom-in-95 duration-500">
+          <div className="flex flex-col items-center text-center mb-8">
+            <div className="bg-blue-50 p-5 rounded-full mb-5">
+              <LockIcon className="text-blue-600" size={36} />
+            </div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Acceso Restringido</h1>
+            <p className="text-sm text-slate-500 mt-2">Introduce la contraseña del equipo para continuar</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Contraseña..."
+                className="w-full border-2 border-slate-50 rounded-2xl p-4 text-center font-bold text-slate-800 outline-none focus:bg-white focus:ring-8 focus:ring-blue-50 focus:border-blue-500 transition-all shadow-sm"
+              />
+              {loginError && <p className="text-red-500 text-xs font-bold text-center mt-3 animate-in slide-in-from-top-1">{loginError}</p>}
+            </div>
+            <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-blue-600 hover:-translate-y-1 transition-all shadow-lg active:scale-95">
+              Entrar al Panel
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -389,11 +447,16 @@ export default function App() {
               )}
             </div>
           </div>
-          <nav className="flex bg-white rounded-3xl shadow-sm border border-slate-100 p-2 w-full md:w-auto overflow-x-auto">
-            <button onClick={() => setViewMode('list')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Lista</button>
-            <button onClick={() => setViewMode('gantt')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'gantt' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Gantt</button>
-            <button onClick={() => setViewMode('calendar')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'calendar' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Calendario</button>
-          </nav>
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+            <nav className="flex bg-white rounded-3xl shadow-sm border border-slate-100 p-2 w-full md:w-auto overflow-x-auto">
+              <button onClick={() => setViewMode('list')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Lista</button>
+              <button onClick={() => setViewMode('gantt')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'gantt' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Gantt</button>
+              <button onClick={() => setViewMode('calendar')} className={`px-6 py-3 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'calendar' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Calendario</button>
+            </nav>
+            <button onClick={handleLogout} className="flex items-center gap-2 bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 px-5 py-3 rounded-3xl border border-slate-100 shadow-sm transition-all text-xs font-black uppercase tracking-widest">
+              <LogOutIcon size={18} /> Salir
+            </button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
